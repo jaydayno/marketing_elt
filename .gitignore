@@ -1,3 +1,6 @@
 elt_venv
 logs
 plugins
+__pycache__
+.env
+configuration.env
