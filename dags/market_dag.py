@@ -3,6 +3,10 @@ from fivetran_provider_async.sensors import FivetranSensor
 from airflow.operators.bash import BashOperator
 from datetime import datetime
 from airflow import DAG
+import os
+
+PATH_TO_DBT_PROJECT = "${AIRFLOW_HOME}/marketing_elt/market_dbt"
+PATH_TO_DBT_VENV = "${AIRFLOW_HOME}/marketing_elt/elt_venv"
 
 default_args = {
     'owner':'jayden'
@@ -25,15 +29,23 @@ with DAG(
     ## Task 1 - Run Fivetran Connector
     start_Fivetran_connector = FivetranOperator(
         task_id='trigger_fivetran',
-        connector_id='gone_formalities', # from Fivetran
+        connector_id='abrasive_elevate', # from Fivetran
         fivetran_conn_id='my_fivetran' # from Task 0 i.e. Airflow Connection
     )
 
     ## Task 2 - Check if gone_formalities ran successfully
     check_Fivetran_connector = FivetranSensor(
         task_id='sense_fivetran',
-        connector_id='gone_formalities',
+        connector_id='abrasive_elevate',
         fivetran_conn_id='my_fivetran'
     )
 
-initializing_conns >> [start_Fivetran_connector, check_Fivetran_connector]
+    ## Task 3 - dbt run and test raw data
+    view_raw_data_test = BashOperator(
+        task_id='dbt_test_raw_data',
+        bash_command='source $DBT_VENV && dbt run -s raw_data && dbt test -s raw_data',
+        env={'DBT_VENV': PATH_TO_DBT_VENV},
+        cwd=PATH_TO_DBT_PROJECT
+    )
+
+initializing_conns >> [start_Fivetran_connector, check_Fivetran_connector] >> view_raw_data_test

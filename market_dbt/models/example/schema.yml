@@ -1,0 +1,12 @@
+
+version: 2
+
+models:
+  - name: raw_data
+    description: "raw_data as a view"
+    columns:
+      - name: row_id
+        description: "The primary key for this table"
+        tests:
+          - unique
+          - not_null
