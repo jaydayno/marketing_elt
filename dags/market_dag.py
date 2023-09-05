@@ -1,12 +1,9 @@
 from fivetran_provider_async.operators import FivetranOperator
 from fivetran_provider_async.sensors import FivetranSensor
+from airflow.providers.docker.operators.docker import DockerOperator
 from airflow.operators.bash import BashOperator
 from datetime import datetime
 from airflow import DAG
-import os
-
-PATH_TO_DBT_PROJECT = f"{os.environ['HOME']}/marketing_elt/market_dbt"
-PATH_TO_DBT_VENV = f"{os.environ['HOME']}/marketing_elt/elt_venv/bin/dbt"
 
 default_args = {
     'owner':'jayden'
@@ -40,12 +37,13 @@ with DAG(
     #     fivetran_conn_id='my_fivetran'
     # )
 
-    ## Task 3 - dbt run and test raw data
-    view_raw_data_test = BashOperator(
+    # Task 3 - dbt run and test raw data
+    view_raw_data_test = DockerOperator(
         task_id='dbt_test_raw_data',
-        bash_command='source $DBT_VENV && dbt run -s raw_data && dbt test -s raw_data',
-        env={'DBT_VENV': PATH_TO_DBT_VENV},
-        cwd=PATH_TO_DBT_PROJECT
+        image='ghcr.io/dbt-labs/dbt-bigquery:1.5.6',
+        command='#!/bin/bash cd usr/app && dbt -h',
+        docker_url='unix://var/run/docker.sock',
+        network_mode='bridge'
     )
 
 #initializing_conns >> [start_Fivetran_connector, check_Fivetran_connector] >> 
