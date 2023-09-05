@@ -41,10 +41,14 @@ with DAG(
     view_raw_data_test = DockerOperator(
         task_id='dbt_test_raw_data',
         image='ghcr.io/dbt-labs/dbt-bigquery:1.5.6',
-        command='#!/bin/bash cd usr/app && dbt -h',
         docker_url='unix://var/run/docker.sock',
-        network_mode='bridge'
+        network_mode='bridge',
+        auto_remove='success',
+        command='test -s raw_data'
     )
 
 #initializing_conns >> [start_Fivetran_connector, check_Fivetran_connector] >> 
 view_raw_data_test
+
+##!/bin/bash cd usr/app && 
+#dbt run -s raw_data && dbt test -s raw_data
