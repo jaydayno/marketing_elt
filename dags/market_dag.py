@@ -2,6 +2,7 @@ from fivetran_provider_async.operators import FivetranOperator
 from fivetran_provider_async.sensors import FivetranSensor
 from airflow.providers.docker.operators.docker import DockerOperator
 from airflow.operators.bash import BashOperator
+from docker.types import Mount
 from datetime import datetime
 from airflow import DAG
 
@@ -44,6 +45,18 @@ with DAG(
         docker_url='unix://var/run/docker.sock',
         network_mode='bridge',
         auto_remove='success',
+        mounts=[
+            Mount(
+                source='/home/linuxjayday/Desktop/marketing_elt/market_dbt', 
+                target='/usr/app', 
+                type='bind'
+            ),
+            Mount(
+                source='/home/linuxjayday/.dbt', 
+                target='/root/.dbt', 
+                type='bind'
+            )
+        ],
         command='test -s raw_data'
     )
 
